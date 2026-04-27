@@ -1,0 +1,143 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="Mutation Engine">
+  <section>
+    <div class="container">
+      <h1 class="section-title">Mutation Engine</h1>
+      <p class="text-muted">Phase 1 Walkthrough - Part 3 of 4</p>
+
+      <div class="card">
+        <h3>The Heart of the System</h3>
+        <p>
+          The mutate function is the core of everything.
+          It produces a new tree version with only the path nodes cloned.
+          Siblings stay shared via Arc pointers.
+        </p>
+      </div>
+
+      <div class="diagram">
+        <pre class="ascii-art">
+// Function signature
+pub fn mutate(root: DomNode, path: Vecusize, change: F) -> DomNode
+    where F: FnOnce
+    mutate_recursive(root, path, 0, change)
+        </pre>
+      </div>
+
+      <div class="card">
+        <h3>Parameters</h3>
+        <ul>
+          <li><code>root</code> - The tree to mutate (Arc pointer)</li>
+          <li><code>path</code> - Indices to follow (e.g., 0,1 means "child 0, then child 1")</li>
+          <li><code>change</code> - Closure that modifies the target node</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <h2 class="section-title">Recursive Implementation</h2>
+
+      <div class="diagram">
+        <pre class="ascii-art">
+fn mutate_recursive(node, path, depth, change):
+    if path.is_empty():
+        // Base case: reached target node
+        new_node = node.clone()     // Clone node data
+        change(new_node)              // Apply change
+        return Arc(new_node)         // Wrap in new Arc
+    else:
+        // Recursive case: follow the path
+        child_idx = path[0]
+        new_node = node.clone()       // Shallow clone
+
+        if child exists:
+            new_child = mutate_recursive(child, path[1..], depth+1, change)
+            new_node.children = new_node.children.update(child_idx, new_child)
+
+        return Arc(new_node)
+        </pre>
+      </div>
+
+      <div class="card">
+        <h3>Key Insight</h3>
+        <p>
+          node.clone() clones the Node fields. The child Arc pointers
+          are copied by reference. When we call .update() on ImVector,
+          we get a new vector sharing all unchanged indices with the old one.
+          Only the path gets new Arc allocations.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <h2 class="section-title">Trace Example</h2>
+
+      <div class="diagram">
+        <pre class="ascii-art">
+// Tree: root -> child[0] -> child[0][0]
+// Call: mutate(root, [0, 0], change)
+
+1. mutate_recursive(root, [0, 0])
+   - path not empty
+   - clone root -> new_root
+   - recurse on root.children[0] with path [0]
+
+2. mutate_recursive(child[0], [0])
+   - path not empty
+   - clone child[0] -> new_child0
+   - recurse on child[0].children[0] with path []
+
+3. mutate_recursive(child[0][0], [])
+   - path empty! Base case
+   - clone leaf -> new_leaf
+   - apply change
+   - return Arc(new_leaf)
+
+// Back up the stack:
+
+4. new_child0.children[0] = new_leaf (from step 3)
+5. new_root.children[0] = Arc(new_child0)
+
+// Result: root, child[0], and leaf[0] are NEW Arcs
+// Siblings of the path remain SHARED via original Arc pointers
+        </pre>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <h2 class="section-title">Test Results</h2>
+
+      <div class="card">
+        <h3>test_mutation_returns_new_arc</h3>
+        <p>old root ptr: <code class="highlight">0x24b4f07d0b0</code></p>
+        <p>new root ptr: <code class="highlight">0x24b4f07d380</code></p>
+        <p>Differferent pointers - mutation produces new tree</p>
+      </div>
+
+      <div class="card">
+        <h3>test_untouched_siblings_are_shared</h3>
+        <p>shared sibling (child0): <code class="shared">0x23933bde130</code></p>
+        <p>Arc::ptr_eq returns true - same allocation</p>
+      </div>
+
+      <div class="card">
+        <h3>test_mutated_path_is_new</h3>
+        <p>old leaf: <code>0x2b1ddde8bd0</code></p>
+        <p>new leaf: <code>0x2b1dddeb2b0</code></p>
+        <p>Mutated path nodes get NEW Arc pointers</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="container text-center mb-xl">
+    <a href="/walkthrough/proof" class="hero-cta">Next: The Proof Test</a>
+  </div>
+</DocsLayout>

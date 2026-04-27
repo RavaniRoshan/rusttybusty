@@ -1,0 +1,108 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="Node Structure">
+  <section>
+    <div class="container">
+      <h1 class="section-title">Node Structure</h1>
+      <p class="text-muted">Phase 1 Walkthrough - Part 1 of 4</p>
+
+      <div class="card">
+        <h3>The Foundation</h3>
+        <p>
+          NodeT is the only data structure in the system.
+          Everything else are functions on Node. Get this right and everything flows from it.
+        </p>
+      </div>
+
+      <div class="diagram">
+        <pre class="ascii-art">
+// Node struct definition
+pub struct NodeT:
+    id: usize                    // unique identifier
+    tag: String                  // element name (div, p, etc)
+    children: ImVector          // persistent vector of Arc-wrapped children
+    attrs: ImHashMap             // persistent map of attributes
+    content: OptionT             // optional text content
+
+// Concrete DOM node type - Node with String content wrapped in Arc
+pub type DomNode = ArcNodeString
+        </pre>
+      </div>
+
+      <div class="card">
+        <h3>Why this design</h3>
+        <ul>
+          <li><strong>ImVector instead of Vec</strong> - Persistent data structure. When you modify it, the new version shares most internal storage with the old. Essential for structural sharing.</li>
+          <li><strong>Arc wrapper</strong> - Atomic reference counting. Multiple owners can share the same Node. Memory freed when last Arc drops.</li>
+          <li><strong>Generic T</strong> - Flexibility to store any content type (String, numbers, custom structs).</li>
+          <li><strong>ImHashMap</strong> - Persistent map for attributes. Shares structure on modifications.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <h2 class="section-title">Node Methods</h2>
+
+      <div class="diagram">
+        <pre class="ascii-art">
+impl T Clone NodeT:
+    pub fn new(id: usize, tag: str) -> Self: ...
+
+    pub fn with_child(mut self, child: ArcNodeT) -> Self: ...
+    pub fn with_attr(mut self, k: String, v: String) -> Self: ...
+    pub fn with_content(mut self, content: T) -> Self: ...
+
+    pub fn child_count(self) -> usize: ...
+    pub fn child(self, idx: usize) -> OptionArcNodeT: ...
+        </pre>
+      </div>
+
+      <div class="card">
+        <h3>Fluent API</h3>
+        <p>
+          Methods return self for chaining:
+        </p>
+        <div class="diagram">
+          <pre class="ascii-art">
+let node = Node.new(1, "div")
+    .with_attr("class", "container")
+    .with_content("Hello")
+          </pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <h2 class="section-title">Key Properties</h2>
+
+      <div class="card">
+        <h3>Immutability Invariant</h3>
+        <p>
+          Once a Node is created, it is never mutated in place.
+          All mutations create new Node instances. This is why ArcNode
+          is automatically thread-safe - immutable data needs no synchronization.
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>Why Arc</h3>
+        <ul>
+          <li>Rc is single-threaded reference counting</li>
+          <li>Arc is atomic - safe across threads (for Phase 2)</li>
+          <li>Arc::clone is cheap - just increments reference count</li>
+          <li>Arc::ptr_eq checks if two Arcs point to same allocation</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <div class="container text-center mb-xl">
+    <a href="/walkthrough/tree-builder" class="hero-cta">Next: TreeBuilder</a>
+  </div>
+</DocsLayout>

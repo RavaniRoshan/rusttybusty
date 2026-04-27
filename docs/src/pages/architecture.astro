@@ -1,0 +1,184 @@
+---
+import DocsLayout from '../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="Architecture">
+  <section>
+    <div class="container">
+      <h1 class="section-title">System Architecture</h1>
+      <p class="text-muted">Deep dive into the three-layer design and memory model</p>
+
+      <div class="card">
+        <h3>Core Principle</h3>
+        <p>
+          A lock-free, thread-safe DOM using Arc-backed persistent data structures.
+          Every mutation produces a new tree version that shares most of its nodes with the old version.
+          Multiple threads read different versions simultaneously, no synchronization required.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <h2 class="section-title">Three-Layer Design</h2>
+
+      <div class="card card-pad-xl architecture-diagram-container">
+        <img src="/architecture-diagram.svg" alt="Three-layer architecture diagram" />
+      </div>
+
+      <div class="card architecture-card">
+        <h3>Layer 1: Node Structure</h3>
+        <p>
+          Immutable <code>Node</code> with <code>Arc</code> wrapping and persistent containers.
+          Children are <code>ImVector</code>, attributes are <code>ImHashMap</code>.
+          This structure is the foundation, everything else is functions on Node.
+        </p>
+      </div>
+
+      <div class="card architecture-card">
+        <h3>Layer 2: Mutation API</h3>
+        <p>
+          The <code>mutate()</code> function recursively clones only the nodes on the path.
+          All other nodes remain shared via their <code>Arc</code> pointers. This is structural sharing in action.
+        </p>
+      </div>
+
+      <div class="card architecture-card">
+        <h3>Layer 3: Concurrent Reader</h3>
+        <p>
+          Renderers (layout, paint) take a snapshot, an <code>Arc</code>, and traverse it without locks.
+          Because the tree is immutable, concurrent reads are inherently thread-safe.
+        </p>
+      </div>
+    </div>
+  </section>
+<section>
+    <div class="container">
+      <h2 class="section-title">Memory Model</h2>
+
+      <div class="card">
+        <h3>Before and After Mutation</h3>
+        <div class="mutation-viz">
+          <div class="viz-column">
+            <div class="tree-box original">
+              <code class="label">root</code>
+              <div class="tree-list">
+                <div>child 0 - Arc A</div>
+                <div>child 1 - Arc B</div>
+                <div>child 2 - Arc C</div>
+              </div>
+            </div>
+            <p class="viz-caption">Original tree</p>
+          </div>
+
+          <div class="viz-arrow">to</div>
+
+          <div class="viz-column">
+            <div class="tree-box mutated">
+              <code class="label">root</code>
+              <div class="tree-list">
+                <div>child 0 - Arc A</div>
+                <div>child 1 - Arc D (new)</div>
+                <div>child 2 - Arc C</div>
+              </div>
+            </div>
+            <p class="viz-caption">New tree - siblings shared</p>
+          </div>
+        </div>
+
+        <div class="card architecture-highlight">
+          <h4>Result</h4>
+          <p>
+            For a 10,000-node tree mutating one leaf: 30 nodes copied, 9,970 shared (99.7% sharing).
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <h2 class="section-title">Node Structure Deep Dive</h2>
+
+      <div class="card">
+        <h3>Key Types</h3>
+        <p>The core types use Arc for thread-safe sharing and ImVector for persistent children.</p>
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <h4>Why ImVector?</h4>
+          <p>
+            Persistent data structure shares most of its internal storage between versions.
+            When you update one index, the new vector only allocates the path to that index.
+          </p>
+        </div>
+        <div class="card">
+          <h4>Why Arc?</h4>
+          <p>
+            Atomic reference counting enables thread-safe sharing.
+            Multiple owners can hold the same Node. When last Arc drops, memory frees.
+          </p>
+        </div>
+        <div class="card">
+          <h4>Why Generic Content?</h4>
+          <p>
+            Flexibility to store any content type (String, numbers, custom structs).
+            The concrete type fixes content to String for DOM use.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <h2 class="section-title">Thread Safety Guarantees</h2>
+
+      <div class="card">
+        <h3>Why No Locks?</h3>
+        <ul>
+          <li><code>Arc</code> is Sync + Send because Node is immutable after creation.</li>
+          <li>Multiple threads can hold Arc to different versions of the tree simultaneously.</li>
+          <li>The publish step is a single atomic pointer swap.</li>
+          <li>Old readers continue on their snapshot; new readers see the new root. No blocking.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>Invariants Table</h3>
+        <table class="pointer-table">
+          <thead>
+            <tr>
+              <th>Thread</th>
+              <th>Holds</th>
+              <th>Can Do</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>JS (writer)</td>
+              <td><code>Arc</code> (mutable)</td>
+              <td>mutate + swap root</td>
+            </tr>
+            <tr>
+              <td>Layout</td>
+              <td><code>Arc</code> (snapshot)</td>
+              <td>Traverse safely</td>
+            </tr>
+            <tr>
+              <td>Paint</td>
+              <td><code>Arc</code> (snapshot)</td>
+              <td>Traverse safely</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <div class="container text-center mb-xl">
+    <a href="/walkthrough/node-structure" class="hero-cta">Continue to Phase 1 Walkthrough</a>
+  </div>
+</DocsLayout>

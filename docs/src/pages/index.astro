@@ -1,0 +1,195 @@
+---
+import DocsLayout from '../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="Home">
+  <section class="hero animate-in">
+    <div class="container">
+      <div class="ascii-art" style="max-width: 600px; margin: 0 auto var(--space-xl); color: var(--text-muted);">
+{`
+    ╔═══════════════════════════════════════════════════════╗
+    ║                                                   ║
+    ║   IMMUTABLE SHARED-STATE DOM                      ║
+    ║   A Lock-Free Browser DOM Experiment              ║
+    ║                                                   ║
+    ╚═══════════════════════════════════════════════════════╝
+`}
+      </div>
+      
+      <h1>What if browsers didn’t lock during mutations?</h1>
+      <p class="hero-tagline">
+        Multiple threads reading the DOM simultaneously — without any locks.<br/>
+        A Rust proof-of-concept using Arc and persistent data structures.
+      </p>
+      
+      <div class="hero-buttons">
+        <a href="/architecture" class="hero-cta">
+          <span>Explore Architecture</span>
+        </a>
+        <a href="/playground" class="hero-cta hero-cta-secondary">
+          <span>Try Playground</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <h2 class="section-title">The Problem</h2>
+
+      <div class="card">
+        <h3>The Traditional DOM Bottleneck</h3>
+        <p>
+          In today's browsers, JavaScript mutations lock the DOM tree. Layout and paint threads block, waiting for the lock to be released. This causes jank, frame drops, and poor scrolling performance — especially on complex pages.
+        </p>
+        
+        <div class="features-grid">
+          <div class="feature-js">
+            <h4>JS Thread</h4>
+            <code>mutate() → lock → modify</code>
+          </div>
+          <div class="feature-layout">
+            <h4>Layout Thread</h4>
+            <code>blocked</code>
+          </div>
+          <div class="feature-paint">
+            <h4>Paint Thread</h4>
+            <code>blocked</code>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <h2 class="section-title">The Solution</h2>
+
+      <div class="card">
+        <h3>Immutable DOM with Structural Sharing</h3>
+        <p>
+          By making the DOM immutable, we eliminate locks entirely. Mutations create a <strong>new tree version</strong> that shares 90%+ of nodes with the old version via <code>Arc</code> pointers. Readers never block writers.
+        </p>
+        
+        <div class="features-grid">
+          <div class="feature-success">
+            <h4>JS Thread</h4>
+            <code>mutate() → new_root</code>
+          </div>
+          <div class="feature-layout">
+            <h4>Layout Thread</h4>
+            <code>reads old_root ✓</code>
+          </div>
+          <div class="feature-paint">
+            <h4>Paint Thread</h4>
+            <code>reads old_root ✓</code>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <h2 class="section-title">Core Innovation</h2>
+
+      <div class="card">
+        <h3>Structural Sharing in Action</h3>
+        <p>
+          Only the nodes on the mutation path are copied. All siblings remain as <code>Arc</code> references to the original allocation. For a 10,000-node tree with one leaf mutation, roughly 30 nodes are copied while 9,970 remain shared.
+        </p>
+        
+        <div class="mutation-viz">
+          <div class="viz-column">
+            <div class="tree-box original">
+              <code class="label">root</code>
+              <div class="tree-list">
+                <div>├─ child_0 — Arc A</div>
+                <div>├─ child_1 — Arc B</div>
+                <div>└─ child_2 — Arc C</div>
+              </div>
+            </div>
+            <p class="viz-caption">Original tree</p>
+          </div>
+          
+          <div class="viz-arrow">→</div>
+          
+          <div class="viz-column">
+            <div class="tree-box mutated">
+              <code class="label">root'</code>
+              <div class="tree-list">
+                <div>├─ child_0 — Arc A</div>
+                <div>├─ child_1' — Arc D</div>
+                <div>└─ child_2 — Arc C</div>
+              </div>
+            </div>
+            <p class="viz-caption">New tree (path cloned, siblings shared)</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <h2 class="section-title">Thread Safety Without Locks</h2>
+
+      <div class="card">
+        <h3>Why Arc is Safe</h3>
+        <p>
+          <code>Arc&lt;Node&gt;</code> is <code>Sync + Send</code> because <code>Node</code> is immutable after creation. Multiple threads can hold <code>Arc</code> pointers to different tree versions simultaneously. No <code>Mutex</code> needed.
+        </p>
+        
+        <table class="pointer-table mt-lg">
+          <thead>
+            <tr>
+              <th>Thread</th>
+              <th>Holds</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>JS (writer)</td>
+              <td><code>Arc&lt;Node&gt;</code> (mutable)</td>
+              <td><code>mutate()</code> → swap root</td>
+            </tr>
+            <tr>
+              <td>Layout</td>
+              <td><code>Arc&lt;Node&gt;</code> (snapshot)</td>
+              <td>Traverse — never blocks</td>
+            </tr>
+            <tr>
+              <td>Paint</td>
+              <td><code>Arc&lt;Node&gt;</code> (snapshot)</td>
+              <td>Traverse — never blocks</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <h2 class="section-title">Explore</h2>
+
+      <div class="grid-3">
+        <a href="/architecture" class="card no-underline">
+          <h3>Architecture</h3>
+          <p>Three-layer design, memory model, thread safety invariants.</p>
+        </a>
+        
+        <a href="/walkthrough/node-structure" class="card no-underline">
+          <h3>Phase 1 Walkthrough</h3>
+          <p>Step-by-step: Node structure, TreeBuilder, mutation engine, and the proof test.</p>
+        </a>
+        
+        <a href="/playground" class="card no-underline">
+          <h3>Interactive Playground</h3>
+          <p>Build trees in your browser. Mutate nodes and watch structural sharing happen in real-time.</p>
+        </a>
+      </div>
+    </div>
+  </section>
+</DocsLayout>

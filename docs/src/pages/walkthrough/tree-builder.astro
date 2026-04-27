@@ -1,0 +1,110 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="TreeBuilder">
+  <section>
+    <div class="container">
+      <h1 class="section-title">TreeBuilder</h1>
+      <p class="text-muted">Phase 1 Walkthrough - Part 2 of 4</p>
+
+      <div class="card">
+        <h3>Convenience API</h3>
+        <p>
+          TreeBuilder saves us from hand-coding Arc wrapping on every node.
+          It provides a fluent interface to construct trees.
+        </p>
+      </div>
+
+      <div class="diagram">
+        <pre class="ascii-art">
+pub struct TreeBuilder:
+    id_counter: usize
+    tag: String
+    attrs: ImHashMap
+    children: VecDomNode
+    content: OptionString
+        </pre>
+      </div>
+
+      <h2 class="section-title">Builder Methods</h2>
+
+      <div class="diagram">
+        <pre class="ascii-art">
+impl TreeBuilder:
+    pub fn new(tag: str) -> Self: ...
+    pub fn child(mut self, child: DomNode) -> Self: ...
+    pub fn attr(mut self, k: String, v: String) -> Self: ...
+    pub fn content(mut self, text: String) -> Self: ...
+    pub fn build(self) -> DomNode: ...
+        </pre>
+      </div>
+
+      <div class="card">
+        <h3>Usage Example</h3>
+        <div class="diagram">
+          <pre class="ascii-art">
+// Build: div#root -> section -> (p "Hello", p "World")
+let root = TreeBuilder.new("div")
+    .attr("id", "root")
+    .child(
+        TreeBuilder.new("section")
+            .child(TreeBuilder.new("p").content("Hello").build())
+            .child(TreeBuilder.new("p").content("World").build())
+            .build()
+    )
+    .build()
+          </pre>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Internal ID Generation</h3>
+        <p>
+          TreeBuilder uses a static AtomicUsize to generate unique IDs
+          for each node automatically. No manual ID management needed.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <h2 class="section-title">Test: Complex Tree</h2>
+
+      <div class="diagram">
+        <pre class="ascii-art">
+test_tree_builder_complex():
+    root = TreeBuilder.new("div")
+        .attr("id", "root")
+        .child(
+            TreeBuilder.new("section")
+                .child(TreeBuilder.new("p").content("Hello").build())
+                .child(TreeBuilder.new("p").content("World").build())
+                .build()
+        )
+        .build()
+
+    // 4 nodes total: div, section, p, p
+    assert(count_nodes(root) == 4)
+
+    // div has 1 child
+    assert(root.child_count() == 1)
+
+    // section has 2 children
+    section = root.child(0).unwrap()
+    assert(section.child_count() == 2)
+        </pre>
+      </div>
+
+      <div class="card">
+        <h3>Test Passed</h3>
+        <p>This confirms TreeBuilder correctly constructs nested trees.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="container text-center mb-xl">
+    <a href="/walkthrough/mutation-engine" class="hero-cta">Next: Mutation Engine</a>
+  </div>
+</DocsLayout>

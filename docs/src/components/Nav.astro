@@ -1,0 +1,65 @@
+---
+import MascotNav from './MascotNav.jsx';
+
+const currentPath = Astro.url.pathname;
+---
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">
+      <MascotNav />
+      <span>Immutable DOM</span>
+    </a>
+    
+    <ul class="nav-links">
+      <li><a href="/" class:list={currentPath === '/' ? ['active'] : []}>Home</a></li>
+      <li><a href="/architecture" class:list={currentPath === '/architecture' || currentPath.startsWith('/architecture') ? ['active'] : []}>Architecture</a></li>
+      <li><a href="/walkthrough/node-structure" class:list={currentPath.startsWith('/walkthrough') ? ['active'] : []}>Walkthrough</a></li>
+      <li><a href="/playground" class:list={currentPath === '/playground' ? ['active'] : []}>Playground</a></li>
+    </ul>
+    
+    <button class="nav-toggle" aria-label="Toggle navigation">
+      <span class="line-1"></span>
+      <span class="line-2"></span>
+      <span class="line-3"></span>
+    </button>
+  </div>
+</nav>
+
+<script>
+  const navToggle = document.querySelector('.nav-toggle');
+  const navOverlay = document.createElement('div');
+  navOverlay.className = 'nav-overlay';
+  navOverlay.innerHTML = `
+    <a href="/" class="mobile-link">Home</a>
+    <a href="/architecture" class="mobile-link">Architecture</a>
+    <a href="/walkthrough/node-structure" class="mobile-link">Walkthrough</a>
+    <a href="/playground" class="mobile-link">Playground</a>
+  `;
+  document.body.appendChild(navOverlay);
+
+  const mobileLinks = navOverlay.querySelectorAll('a');
+  
+  navToggle.addEventListener('click', () => {
+    navToggle.classList.toggle('active');
+    navOverlay.classList.toggle('open');
+    document.body.style.overflow = navOverlay.classList.contains('open') ? 'hidden' : '';
+  });
+
+  mobileLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      navToggle.classList.remove('active');
+      navOverlay.classList.remove('open');
+      document.body.style.overflow = '';
+    });
+  });
+
+  // Close on escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && navOverlay.classList.contains('open')) {
+      navToggle.classList.remove('active');
+      navOverlay.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  });
+</script>

@@ -1,0 +1,93 @@
+---
+import DocsLayout from '../layouts/DocsLayout.astro';
+import Playground from '../components/Playground.jsx';
+---
+
+<DocsLayout title="Playground">
+  <section>
+    <div class="container">
+      <h1 class="section-title">Interactive Playground</h1>
+      <p class="text-muted mb-xl">
+        JavaScript simulation of the Immutable DOM. Build a tree, mutate it, see structural sharing in action.
+      </p>
+
+      <Playground client:load />
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <h2 class="section-title">How It Works</h2>
+
+      <div class="card">
+        <h3>JavaScript Simulation</h3>
+        <p>
+          This playground replicates the core Rust logic in JavaScript to demonstrate
+          structural sharing in the browser. The concepts are identical:
+        </p>
+        <ul>
+          <li><strong>Nodes</strong> — Immutable objects with tag, content, children</li>
+          <li><strong>Path cloning</strong> — Only nodes on the mutation path are copied</li>
+          <li><strong>Structural sharing</strong> — Unchanged children use the same references</li>
+          <li><strong>ID tracking</strong> — Each node gets a unique ID to track shared vs new nodes</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>The Algorithm</h3>
+        <pre><code>function mutateTree(root, path, changeFn) &#123;
+  if (path.length === 0) &#123;
+    // Base case: clone node and apply change
+    const newNode = &#123;...root&#125;;
+    newNode.id = uniqueId();
+    changeFn(newNode);
+    return newNode;
+  &#125;
+
+  // Recursive case: clone path to target
+  const newRoot = &#123;...root&#125;;
+  newRoot.id = uniqueId();
+  newRoot.children = [...root.children];
+  newRoot.children[path[0]] = mutateTree(
+    root.children[path[0]],
+    path.slice(1),
+    changeFn
+  );
+
+  return newRoot;
+&#125;</code></pre>
+      </div>
+
+      <div class="card">
+        <h3>What to Observe</h3>
+        <ol>
+          <li>When you mutate, the <strong>target node</strong> gets a new ID (new allocation)</li>
+          <li>Nodes on the path get <strong>new IDs</strong> (cloned)</li>
+          <li>Nodes <strong>not on the path</strong> keep their <strong>original IDs</strong> (shared!)</li>
+          <li>The old tree remains completely unchanged</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <h2 class="section-title">Try These</h2>
+
+      <div class="card">
+        <h3>1. Default mutation</h3>
+        <p>Click "Mutate!" without changing the path. It will mutate <code>section.children[0]</code> (first span).</p>
+      </div>
+
+      <div class="card">
+        <h3>2. Different path</h3>
+        <p>Enter "0, 1" to mutate the second child of section (the sibling span).</p>
+      </div>
+
+      <div class="card">
+        <h3>3. Footer mutation</h3>
+        <p>Enter "1" to mutate the footer paragraph directly. Notice how the section is completely shared.</p>
+      </div>
+    </div>
+  </section>
+</DocsLayout>
