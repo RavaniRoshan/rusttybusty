@@ -7,7 +7,13 @@ interface Props {
   description?: string;
 }
 
-const { title, description = 'Immutable Shared-State DOM in Rust — A proof-of-concept lock-free browser DOM' } = Astro.props;
+const currentPath = Astro.url.pathname;
+const isHome = currentPath === '/';
+
+const { 
+  title, 
+  description = 'Immutable Shared-State DOM in Rust — A proof-of-concept lock-free browser DOM'
+} = Astro.props;
 ---
 
 <!DOCTYPE html>
@@ -18,6 +24,22 @@ const { title, description = 'Immutable Shared-State DOM in Rust — A proof-of-
   <meta name="description" content={description} />
   <title>{title} | Immutable DOM</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <script is:inline>
+    const theme = (() => {
+      if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+        return localStorage.getItem('theme');
+      }
+      if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+        return 'light';
+      }
+      return 'dark'; // Default to dark unless light is explicitly requested
+    })();
+    document.documentElement.setAttribute('data-theme', theme);
+    // Explicitly set light mode for the homepage if no preference exists
+    if (window.location.pathname === '/' && !localStorage.getItem('theme')) {
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+  </script>
 </head>
 <body>
   <Nav />

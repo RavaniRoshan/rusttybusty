@@ -60,8 +60,8 @@ function renderTree(node, path = [], depth = 0, highlightPath = []) {
   let bgColor = 'transparent';
 
   if (isHighlighted) {
-    borderColor = '#b7410e';
-    bgColor = 'rgba(183, 65, 14, 0.2)';
+    borderColor = 'var(--accent-primary)';
+    bgColor = 'rgba(183, 65, 14, 0.1)';
   } else if (isOnPath) {
     borderColor = '#4ade80';
     bgColor = 'rgba(74, 222, 128, 0.1)';
@@ -70,7 +70,7 @@ function renderTree(node, path = [], depth = 0, highlightPath = []) {
   return (
     <div key={node.id} style={{ 
       marginLeft: depth > 0 ? '24px' : '0',
-      borderLeft: '1px dashed #404040',
+      borderLeft: '1px dashed var(--border-medium)',
       paddingLeft: '12px',
       marginTop: '8px'
     }}>
@@ -85,20 +85,20 @@ function renderTree(node, path = [], depth = 0, highlightPath = []) {
         fontFamily: "'IBM Plex Mono', monospace",
         fontSize: '14px',
       }}>
-        <span style={{ color: '#a8a8a8' }}>&lt;</span>
-        <span style={{ color: '#b7410e', fontWeight: '600' }}>{node.tag}</span>
+        <span style={{ color: 'var(--text-tertiary)' }}>&lt;</span>
+        <span style={{ color: 'var(--rust-orange)', fontWeight: '600' }}>{node.tag}</span>
         {Object.entries(node.attrs).map(([k, v]) => (
-          <span key={k} style={{ color: '#707070' }}>
+          <span key={k} style={{ color: 'var(--text-muted)' }}>
             {k}="{v}"
           </span>
         ))}
-        <span style={{ color: '#a8a8a8' }}>&gt;</span>
+        <span style={{ color: 'var(--text-tertiary)' }}>&gt;</span>
         {node.content && (
-          <span style={{ color: '#e5e5e5' }}>{node.content}</span>
+          <span style={{ color: 'var(--text-primary)' }}>{node.content}</span>
         )}
         <span style={{ 
           fontSize: '10px', 
-          color: '#404040',
+          color: 'var(--text-muted)',
           marginLeft: '8px'
         }}>
           id:{node.id.substr(0, 6)}
@@ -148,120 +148,96 @@ export default function Playground() {
   const pathInput = mutatedPath.join(', ');
 
   return (
-    <div style={{ padding: '24px', fontFamily: "'IBM Plex Mono', monospace" }}>
-      <h1 style={{ color: '#b7410e', marginBottom: '16px' }}>Interactive Playground</h1>
-      <p style={{ color: '#a8a8a8', marginBottom: '24px' }}>
-        JavaScript simulation of the Immutable DOM. Build a tree, mutate it, see structural sharing.
-      </p>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
-        <div>
-          <h3 style={{ color: '#e5e5e5', marginBottom: '12px' }}>Mutation Path</h3>
+    <div style={{ fontFamily: "var(--font-sans)" }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px', marginBottom: '32px' }}>
+        <div className="card" style={{ padding: '24px' }}>
+          <h3 style={{ marginBottom: '16px' }}>Controls</h3>
+          <h4 style={{ color: 'var(--text-secondary)', marginBottom: '8px', fontSize: '14px', fontWeight: '500' }}>Mutation Path</h4>
           <input
             type="text"
             value={pathInput}
             onChange={(e) => setMutatedPath(e.target.value.split(',').map(Number).filter(n => !isNaN(n)))}
             placeholder="e.g., 0, 0"
             style={{
-              background: '#2d2d2d',
-              border: '1px solid #404040',
-              color: '#e5e5e5',
-              padding: '8px 12px',
-              borderRadius: '4px',
+              background: 'var(--bg-code)',
+              border: '1px solid var(--border-light)',
+              color: 'var(--text-primary)',
+              padding: '12px 16px',
+              borderRadius: '8px',
               width: '100%',
-              fontFamily: 'inherit',
+              fontFamily: 'var(--font-mono)',
+              boxSizing: 'border-box',
+              marginBottom: '16px'
             }}
           />
-          <p style={{ fontSize: '12px', color: '#707070', marginTop: '8px' }}>
+          <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '24px' }}>
             Comma-separated indices: "0, 1" = root.children[0].children[1]
           </p>
+
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <button
+              onClick={handleMutate}
+              className="hero-cta"
+              style={{
+                padding: '12px 24px',
+                fontSize: '14px',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              Mutate!
+            </button>
+            <button
+              onClick={handleReset}
+              className="hero-cta-secondary"
+              style={{
+                padding: '12px 24px',
+                fontSize: '14px',
+                borderRadius: '9999px',
+                cursor: 'pointer',
+              }}
+            >
+              Reset
+            </button>
+          </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-          <button
-            onClick={handleMutate}
-            style={{
-              background: '#b7410e',
-              color: '#e5e5e5',
-              border: 'none',
-              padding: '8px 16px',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-              fontWeight: '600',
-            }}
-          >
-            Mutate!
-          </button>
-          <button
-            onClick={handleReset}
-            style={{
-              background: 'transparent',
-              color: '#707070',
-              border: '1px solid #404040',
-              padding: '8px 16px',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-            }}
-          >
-            Reset
-          </button>
+        <div className="card diagram-container" style={{ padding: '24px', margin: 0 }}>
+          <h3 style={{ marginBottom: '16px' }}>Current Tree</h3>
+          {renderTree(tree, [], 0, newTree ? mutatedPath : [])}
         </div>
-      </div>
-
-      <div style={{ 
-        background: '#1c1c1c', 
-        border: '1px solid #404040', 
-        borderRadius: '6px', 
-        padding: '16px',
-        marginBottom: '24px' 
-      }}>
-        <h3 style={{ color: '#b7410e', marginBottom: '16px' }}>Current Tree</h3>
-        {renderTree(tree, [], 0, newTree ? mutatedPath : [])}
       </div>
 
       {oldTree && newTree && (
-        <div style={{ 
-          background: '#1c1c1c', 
-          border: '1px solid #404040', 
-          borderRadius: '6px', 
-          padding: '16px',
-          marginBottom: '24px'
-        }}>
-          <h3 style={{ color: '#b7410e', marginBottom: '16px' }}>After Mutation</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-            <div>
-              <h4 style={{ color: '#a8a8a8', marginBottom: '8px' }}>Old Tree (unchanged)</h4>
+        <div className="card" style={{ padding: '24px', marginBottom: '32px' }}>
+          <h3 style={{ marginBottom: '24px' }}>After Mutation</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '24px' }}>
+            <div className="diagram-container" style={{ padding: '24px', margin: 0 }}>
+              <h4 style={{ color: 'var(--text-secondary)', marginBottom: '16px', borderBottom: '1px solid var(--border-light)', paddingBottom: '8px' }}>Old Tree (unchanged)</h4>
               {renderTree(oldTree)}
             </div>
-            <div>
-              <h4 style={{ color: '#a8a8a8', marginBottom: '8px' }}>New Tree (mutated)</h4>
+            <div className="diagram-container" style={{ padding: '24px', margin: 0 }}>
+              <h4 style={{ color: 'var(--text-secondary)', marginBottom: '16px', borderBottom: '1px solid var(--border-light)', paddingBottom: '8px' }}>New Tree (mutated)</h4>
               {renderTree(newTree, [], 0, mutatedPath)}
             </div>
           </div>
         </div>
       )}
 
-      <div style={{ 
-        background: '#2d2d2d', 
-        border: '1px solid #404040', 
-        borderRadius: '6px', 
-        padding: '16px' 
-      }}>
-        <h3 style={{ color: '#b7410e', marginBottom: '12px' }}>Legend</h3>
-        <div style={{ display: 'flex', gap: '24px', fontSize: '14px' }}>
+      <div className="card" style={{ padding: '24px' }}>
+        <h3 style={{ marginBottom: '16px' }}>Legend</h3>
+        <div style={{ display: 'flex', gap: '24px', fontSize: '14px', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ width: '16px', height: '16px', background: 'rgba(183, 65, 14, 0.2)', border: '1px solid #b7410e', borderRadius: '2px' }}></div>
-            <span style={{ color: '#a8a8a8' }}>Target (will mutate)</span>
+            <div style={{ width: '16px', height: '16px', background: 'rgba(183, 65, 14, 0.1)', border: '1px solid var(--accent-primary)', borderRadius: '4px' }}></div>
+            <span style={{ color: 'var(--text-secondary)' }}>Target (will mutate)</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ width: '16px', height: '16px', background: 'rgba(74, 222, 128, 0.1)', border: '1px solid #4ade80', borderRadius: '2px' }}></div>
-            <span style={{ color: '#a8a8a8' }}>Path (will clone)</span>
+            <div style={{ width: '16px', height: '16px', background: 'rgba(74, 222, 128, 0.1)', border: '1px solid #4ade80', borderRadius: '4px' }}></div>
+            <span style={{ color: 'var(--text-secondary)' }}>Path (will clone)</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ width: '16px', height: '16px', background: 'transparent', border: '1px solid #404040', borderRadius: '2px' }}></div>
-            <span style={{ color: '#a8a8a8' }}>Shared (unchanged)</span>
+            <div style={{ width: '16px', height: '16px', background: 'transparent', border: '1px solid var(--border-medium)', borderRadius: '4px' }}></div>
+            <span style={{ color: 'var(--text-secondary)' }}>Shared (unchanged)</span>
           </div>
         </div>
       </div>

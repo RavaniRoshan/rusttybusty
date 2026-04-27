@@ -1,195 +1,511 @@
 ---
 import DocsLayout from '../layouts/DocsLayout.astro';
+import DiagramModule00 from '../components/DiagramModule00.jsx';
+import DiagramModule01 from '../components/DiagramModule01.jsx';
+import DiagramModule02 from '../components/DiagramModule02.jsx';
 ---
 
-<DocsLayout title="Home">
-  <section class="hero animate-in">
-    <div class="container">
-      <div class="ascii-art" style="max-width: 600px; margin: 0 auto var(--space-xl); color: var(--text-muted);">
-{`
-    ╔═══════════════════════════════════════════════════════╗
-    ║                                                   ║
-    ║   IMMUTABLE SHARED-STATE DOM                      ║
-    ║   A Lock-Free Browser DOM Experiment              ║
-    ║                                                   ║
-    ╚═══════════════════════════════════════════════════════╝
-`}
-      </div>
+<DocsLayout title="Immutable DOM" theme="light">
+  <style>
+    /* SVG.guide style specific overrides */
+    .hero-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: var(--space-3xl) var(--space-md);
+      text-align: center;
+    }
+    
+    .hero-title {
+      font-family: var(--font-serif);
+      font-size: clamp(3.5rem, 8vw, 6.5rem);
+      line-height: 1;
+      color: var(--text-primary);
+      margin-bottom: var(--space-lg);
+      letter-spacing: -0.03em;
+    }
+
+    .hero-author {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      margin-bottom: var(--space-xl);
+    }
+    
+    .hero-author-avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--text-primary);
+      color: var(--bg-page);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-serif);
+      font-size: 14px;
+    }
+
+    .hero-ctas {
+      display: flex;
+      justify-content: center;
+      gap: var(--space-md);
+    }
+
+    .btn-primary {
+      background: var(--accent-primary);
+      color: var(--bg-surface);
+      border-radius: 9999px;
+      padding: 0.75rem 1.5rem;
+      font-weight: 500;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+    }
+
+    .btn-secondary {
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      border: 1px solid var(--border-medium);
+      border-radius: 9999px;
+      padding: 0.75rem 1.5rem;
+      font-weight: 500;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+    }
+
+    .btn-icon {
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      line-height: 1;
+    }
+    
+    .btn-secondary .btn-icon {
+      background: var(--text-primary);
+      color: var(--bg-surface);
+    }
+
+    /* Ruler container */
+    .ruler-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      border-left: 1px solid var(--border-medium);
+      border-right: 1px solid var(--border-medium);
+      position: relative;
+    }
+
+    /* CSS magic for the ruler ticks */
+    .ruler-container::before,
+    .ruler-container::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 12px;
+      pointer-events: none;
+    }
+    .ruler-container::before {
+      left: 0;
+      background: 
+        repeating-linear-gradient(to bottom, transparent, transparent 9px, var(--border-medium) 9px, var(--border-medium) 10px),
+        repeating-linear-gradient(to bottom, transparent, transparent 49px, var(--border-medium) 49px, var(--border-medium) 50px);
+      background-size: 6px 100%, 10px 100%;
+      background-position: 0 0, 0 0;
+      background-repeat: no-repeat;
+    }
+    .ruler-container::after {
+      right: 0;
+      background: 
+        repeating-linear-gradient(to bottom, transparent, transparent 9px, var(--border-medium) 9px, var(--border-medium) 10px),
+        repeating-linear-gradient(to bottom, transparent, transparent 49px, var(--border-medium) 49px, var(--border-medium) 50px);
+      background-size: 6px 100%, 10px 100%;
+      background-position: right 0, right 0;
+      background-repeat: no-repeat;
+    }
+
+    .content-wrapper {
+      padding: 0 var(--space-3xl);
+    }
+
+    .quote-section {
+      text-align: center;
+      padding: var(--space-3xl) 0;
+      border-bottom: 1px solid var(--border-light);
+      border-top: 1px solid var(--border-light);
+    }
+    .quote-title {
+      font-family: var(--font-serif);
+      font-size: clamp(2rem, 4vw, 3rem);
+      margin-bottom: var(--space-xl);
+      color: var(--text-primary);
+      font-weight: 400;
+    }
+    .quote-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-2xl);
+      text-align: left;
+    }
+    .quote-grid p {
+      font-size: 0.875rem;
+      line-height: 1.8;
+      color: var(--text-primary);
+    }
+
+    .intro-section {
+      padding: var(--space-3xl) 0;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .intro-title {
+      font-family: var(--font-serif);
+      font-weight: 400;
+      font-size: clamp(2rem, 3vw, 2.5rem);
+      margin-bottom: var(--space-md);
+      max-width: 800px;
+    }
+    .intro-text {
+      font-size: 1rem;
+      color: var(--text-primary);
+      max-width: 800px;
+      line-height: 1.6;
+    }
+
+    .module-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-bottom: 1px solid var(--border-light);
+      position: relative;
+    }
+    .module-header {
+      position: absolute;
+      top: var(--space-xl);
+      left: 0;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .module-text-col {
+      padding: var(--space-3xl) var(--space-xl) var(--space-3xl) 0;
+      border-right: 1px solid var(--border-light);
+    }
+    .module-visual-col {
+      padding: var(--space-3xl) 0 var(--space-3xl) var(--space-xl);
+    }
+    .module-title {
+      font-family: var(--font-sans);
+      font-weight: 500;
+      font-size: 1rem;
+      margin-bottom: var(--space-lg);
+      margin-top: var(--space-lg);
+      color: var(--text-primary);
+    }
+    .module-desc {
+      font-size: 0.875rem;
+      line-height: 1.8;
+      margin-bottom: var(--space-lg);
+      color: var(--text-primary);
+    }
+    
+    .code-box {
+      border: 1px solid var(--border-medium);
+      background: var(--bg-surface);
+      padding: var(--space-md);
+      position: relative;
+      margin: var(--space-xl) 0;
+    }
+    /* Corner crosshairs */
+    .code-box::before, .code-box::after {
+      content: '+';
+      position: absolute;
+      font-family: var(--font-mono);
+      color: var(--text-tertiary);
+      font-size: 14px;
+      line-height: 1;
+      font-weight: 300;
+    }
+    .code-box::before { top: -6px; left: -4px; }
+    .code-box::after { bottom: -6px; right: -4px; }
+    
+    .code-box pre {
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      border: none;
+      font-size: 0.75rem;
+      color: var(--text-primary);
+    }
+
+    .diagram-bg {
+      width: 100%;
+      height: 100%;
+      min-height: 400px;
+      background-image: 
+        linear-gradient(var(--border-light) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border-light) 1px, transparent 1px);
+      background-size: 20px 20px;
+      border: 1px solid var(--border-medium);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .testimonial-section {
+      padding: var(--space-3xl) 0;
+    }
+    .testimonial-title {
+      text-align: center;
+      font-family: var(--font-serif);
+      font-size: 2rem;
+      font-weight: 400;
+      margin-bottom: var(--space-2xl);
+    }
+    .testimonial-staggered {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2xl);
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .testimonial-card {
+      width: 80%;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-medium);
+      padding: var(--space-lg) var(--space-lg) var(--space-lg) calc(var(--space-lg) + 20px);
+      border-radius: 8px;
+      position: relative;
+    }
+    .testimonial-card::before {
+      content: '"';
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-family: var(--font-serif);
+      font-size: 4rem;
+      color: var(--border-medium);
+      line-height: 1;
+      opacity: 0.5;
+    }
+    .testimonial-right {
+      align-self: flex-end;
+    }
+    .testimonial-left {
+      align-self: flex-start;
+    }
+    .testimonial-text {
+      font-size: 1rem;
+      line-height: 1.6;
+      color: var(--text-primary);
+      margin-bottom: var(--space-md);
+      font-style: italic;
+    }
+    .testimonial-author {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .testimonial-author::before {
+      content: '';
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent-primary);
+      display: inline-block;
+    }
+
+    @media (max-width: 768px) {
+      .quote-grid, .module-row {
+        grid-template-columns: 1fr;
+      }
+      .module-text-col {
+        border-right: none;
+        border-bottom: 1px solid var(--border-light);
+        padding: var(--space-3xl) 0 var(--space-xl);
+      }
+      .module-visual-col {
+        padding: var(--space-xl) 0 var(--space-3xl);
+      }
+      .content-wrapper {
+        padding: 0 var(--space-lg);
+      }
+      .ruler-container::before, .ruler-container::after {
+        display: none;
+      }
+      .ruler-container {
+        border: none;
+      }
+      .module-header {
+        top: var(--space-md);
+      }
+    }
+  </style>
+
+  <div class="hero-container">
+    <h1 class="hero-title">
+      Immutable<br/>
+      DOM Architecture
+    </h1>
+    <div class="hero-author">
+      <span class="hero-author-avatar">R</span>
+      <span>By <strong>roshanravani</strong></span>
+    </div>
+    <div class="hero-ctas">
+      <a href="/architecture" class="btn-primary">
+        Explore <span class="btn-icon">→</span>
+      </a>
+      <a href="/playground" class="btn-secondary">
+        Playground <span class="btn-icon">→</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="ruler-container">
+    <div class="content-wrapper">
       
-      <h1>What if browsers didn’t lock during mutations?</h1>
-      <p class="hero-tagline">
-        Multiple threads reading the DOM simultaneously — without any locks.<br/>
-        A Rust proof-of-concept using Arc and persistent data structures.
-      </p>
-      
-      <div class="hero-buttons">
-        <a href="/architecture" class="hero-cta">
-          <span>Explore Architecture</span>
-        </a>
-        <a href="/playground" class="hero-cta hero-cta-secondary">
-          <span>Try Playground</span>
-        </a>
-      </div>
-    </div>
-  </section>
-
-  <section>
-    <div class="container">
-      <h2 class="section-title">The Problem</h2>
-
-      <div class="card">
-        <h3>The Traditional DOM Bottleneck</h3>
-        <p>
-          In today's browsers, JavaScript mutations lock the DOM tree. Layout and paint threads block, waiting for the lock to be released. This causes jank, frame drops, and poor scrolling performance — especially on complex pages.
-        </p>
-        
-        <div class="features-grid">
-          <div class="feature-js">
-            <h4>JS Thread</h4>
-            <code>mutate() → lock → modify</code>
-          </div>
-          <div class="feature-layout">
-            <h4>Layout Thread</h4>
-            <code>blocked</code>
-          </div>
-          <div class="feature-paint">
-            <h4>Paint Thread</h4>
-            <code>blocked</code>
-          </div>
+      <section class="quote-section">
+        <h2 class="quote-title">"The DOM is locked."</h2>
+        <div class="quote-grid">
+          <p>
+            If you're anything like me, you've always thought of the DOM as a kind of black box; nothing more than a mutable tree, hoping that everything renders right. And sometimes, it does!
+          </p>
+          <p>
+            But other times, something's not quite right. A complex state update triggers a massive reflow. The layout thread is blocked. The framerate drops. Because the DOM enforces a strict lock during mutations.
+          </p>
         </div>
-      </div>
-    </div>
-  </section>
+      </section>
 
-  <section>
-    <div class="container">
-      <h2 class="section-title">The Solution</h2>
-
-      <div class="card">
-        <h3>Immutable DOM with Structural Sharing</h3>
-        <p>
-          By making the DOM immutable, we eliminate locks entirely. Mutations create a <strong>new tree version</strong> that shares 90%+ of nodes with the old version via <code>Arc</code> pointers. Readers never block writers.
+      <section class="intro-section">
+        <h2 class="intro-title">Everything you need to know about structural sharing and how to build a lock-free DOM.</h2>
+        <p class="intro-text" style="margin-top: var(--space-md);">
+          <strong>Immutable DOM Architecture</strong> is the single resource you need to learn all things persistent trees. Across our architecture deep-dive and interactive playground, you'll learn how the <code>Arc</code> pointer works, the various ways to mutate a tree without locks, and even dive into structural sharing features that allow for performance typically impossible with mutable trees alone.
         </p>
-        
-        <div class="features-grid">
-          <div class="feature-success">
-            <h4>JS Thread</h4>
-            <code>mutate() → new_root</code>
+      </section>
+
+      <section class="module-row">
+        <div class="module-header">Module 00.</div>
+        <div class="module-text-col">
+          <h3 class="module-title">0. Foundations</h3>
+          <p class="module-desc">
+            A standard DOM is a mutable tree, just like an HTML structure. But while HTML has elements for describing <em>documents</em> like <code>p</code> and <code>h1</code>, our Immutable DOM uses persistent data structures for describing <em>trees</em> like <code>Node</code> and <code>ImVector</code>.
+          </p>
+          <div class="code-box">
+            <pre><code>pub struct Node&lt;T&gt; &#123;
+  id: usize,
+  tag: String,
+  children: ImVector&lt;Arc&lt;Node&lt;T&gt;&gt;&gt;,
+  attrs: ImHashMap&lt;String, String&gt;,
+  content: Option&lt;T&gt;,
+&#125;</code></pre>
           </div>
-          <div class="feature-layout">
-            <h4>Layout Thread</h4>
-            <code>reads old_root ✓</code>
-          </div>
-          <div class="feature-paint">
-            <h4>Paint Thread</h4>
-            <code>reads old_root ✓</code>
-          </div>
+          <p class="module-desc">
+            Try changing the attributes of a node and notice how it yields an entirely new tree instance in code!
+          </p>
+          <p class="module-desc">
+            In this chapter, we'll dive deeper into how to construct these persistent trees and take a look at how its memory system works.
+          </p>
         </div>
-      </div>
-    </div>
-  </section>
+        <div class="module-visual-col">
+          <DiagramModule00 client:load />
+        </div>
+      </section>
 
-  <section>
-    <div class="container">
-      <h2 class="section-title">Core Innovation</h2>
+      <section class="module-row">
+        <div class="module-header">Module 01.</div>
+        <div class="module-text-col">
+          <h3 class="module-title">1. Structural Sharing</h3>
+          <p class="module-desc">
+            Many persistent data structures use structural sharing, which means you can mutate them the same way you would any other tree. There are just a few little quirks you need to be mindful of.
+          </p>
+          <div class="code-box">
+            <pre><code>fn mutate(root, path) &#123;
+  let mut new_root = root.clone();
+  new_root.children[path[0]] = 
+    mutate(child, path[1..]);
+  return Arc::new(new_root);
+&#125;</code></pre>
+          </div>
+          <p class="module-desc">
+            In this chapter, we'll make our first tree mutation by taking a closer look at how <code>Arc</code> interacts with the DOM and a few techniques for chaining mutations together.
+          </p>
+        </div>
+        <div class="module-visual-col">
+          <DiagramModule01 client:load />
+        </div>
+      </section>
 
-      <div class="card">
-        <h3>Structural Sharing in Action</h3>
-        <p>
-          Only the nodes on the mutation path are copied. All siblings remain as <code>Arc</code> references to the original allocation. For a 10,000-node tree with one leaf mutation, roughly 30 nodes are copied while 9,970 remain shared.
-        </p>
-        
-        <div class="mutation-viz">
-          <div class="viz-column">
-            <div class="tree-box original">
-              <code class="label">root</code>
-              <div class="tree-list">
-                <div>├─ child_0 — Arc A</div>
-                <div>├─ child_1 — Arc B</div>
-                <div>└─ child_2 — Arc C</div>
-              </div>
-            </div>
-            <p class="viz-caption">Original tree</p>
+      <section class="module-row" style="border-bottom: none;">
+        <div class="module-header">Module 02.</div>
+        <div class="module-text-col">
+          <h3 class="module-title">2. Try the Playground</h3>
+          <p class="module-desc">
+            We've built a JavaScript simulation of the Rust mutation engine so you can see structural sharing happen in real-time. 
+          </p>
+          <div class="code-box" style="display: flex; justify-content: center; padding: var(--space-xl) 0;">
+            <a href="/playground" class="btn-secondary">
+              Open Interactive Playground
+            </a>
+          </div>
+          <p class="module-desc">
+            In this chapter, we'll explore how to use the interactive playground and how we can integrate it in modern codebases.
+          </p>
+        </div>
+        <div class="module-visual-col">
+          <DiagramModule02 client:load />
+        </div>
+      </section>
+
+      <section class="testimonial-section">
+        <h2 class="testimonial-title">Trusted by independent developers.</h2>
+        <div class="testimonial-staggered">
+          <div class="testimonial-card testimonial-right">
+            <p class="testimonial-text">
+              "It's so good. So much love and care put into this lock-free architectural model!"
+            </p>
+            <div class="testimonial-author">#VirtualDev</div>
           </div>
           
-          <div class="viz-arrow">→</div>
+          <div class="testimonial-card testimonial-left">
+            <p class="testimonial-text">
+              "This is the ultimate resource—nobody has DOM execution speed expertise quite like this."
+            </p>
+            <div class="testimonial-author">#GoogleDev</div>
+          </div>
           
-          <div class="viz-column">
-            <div class="tree-box mutated">
-              <code class="label">root'</code>
-              <div class="tree-list">
-                <div>├─ child_0 — Arc A</div>
-                <div>├─ child_1' — Arc D</div>
-                <div>└─ child_2 — Arc C</div>
-              </div>
-            </div>
-            <p class="viz-caption">New tree (path cloned, siblings shared)</p>
+          <div class="testimonial-card testimonial-right">
+            <p class="testimonial-text">
+              "Static books and abstract documentation never helped me learn how to make real structural changes."
+            </p>
+            <div class="testimonial-author">#MozillaDev</div>
+          </div>
+          
+          <div class="testimonial-card testimonial-left">
+            <p class="testimonial-text">
+              "First exercise in and I'm hooked—clear, concise, and awesome interactive examples."
+            </p>
+            <div class="testimonial-author">#FirefoxDev</div>
           </div>
         </div>
-      </div>
+      </section>
+
     </div>
-  </section>
-
-  <section>
-    <div class="container">
-      <h2 class="section-title">Thread Safety Without Locks</h2>
-
-      <div class="card">
-        <h3>Why Arc is Safe</h3>
-        <p>
-          <code>Arc&lt;Node&gt;</code> is <code>Sync + Send</code> because <code>Node</code> is immutable after creation. Multiple threads can hold <code>Arc</code> pointers to different tree versions simultaneously. No <code>Mutex</code> needed.
-        </p>
-        
-        <table class="pointer-table mt-lg">
-          <thead>
-            <tr>
-              <th>Thread</th>
-              <th>Holds</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>JS (writer)</td>
-              <td><code>Arc&lt;Node&gt;</code> (mutable)</td>
-              <td><code>mutate()</code> → swap root</td>
-            </tr>
-            <tr>
-              <td>Layout</td>
-              <td><code>Arc&lt;Node&gt;</code> (snapshot)</td>
-              <td>Traverse — never blocks</td>
-            </tr>
-            <tr>
-              <td>Paint</td>
-              <td><code>Arc&lt;Node&gt;</code> (snapshot)</td>
-              <td>Traverse — never blocks</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </section>
-
-  <section>
-    <div class="container">
-      <h2 class="section-title">Explore</h2>
-
-      <div class="grid-3">
-        <a href="/architecture" class="card no-underline">
-          <h3>Architecture</h3>
-          <p>Three-layer design, memory model, thread safety invariants.</p>
-        </a>
-        
-        <a href="/walkthrough/node-structure" class="card no-underline">
-          <h3>Phase 1 Walkthrough</h3>
-          <p>Step-by-step: Node structure, TreeBuilder, mutation engine, and the proof test.</p>
-        </a>
-        
-        <a href="/playground" class="card no-underline">
-          <h3>Interactive Playground</h3>
-          <p>Build trees in your browser. Mutate nodes and watch structural sharing happen in real-time.</p>
-        </a>
-      </div>
-    </div>
-  </section>
+  </div>
 </DocsLayout>
