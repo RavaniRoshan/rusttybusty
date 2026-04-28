@@ -1,0 +1,15 @@
+# Jekyll configuration to exclude Astro source files
+# GitHub Pages uses Jekyll, so we need to prevent it from processing
+# Astro component files that contain --- delimiters
+
+exclude:
+  - src/
+  - node_modules/
+  - .astro/
+  - astro.config.mjs
+  - tsconfig.json
+  - package.json
+  - package-lock.json
+
+# Optional: disable Jekyll entirely for this directory
+skip_initial_build: true
