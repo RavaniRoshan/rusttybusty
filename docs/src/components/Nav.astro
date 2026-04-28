@@ -2,12 +2,21 @@
 import MascotNav from './MascotNav.jsx';
 
 const currentPath = Astro.url.pathname;
+const BASE_URL = import.meta.env.BASE_URL;
 
-// Precompute resolved URLs for comparison
-const homeUrl = Astro.resolve('/');
-const architectureUrl = Astro.resolve('/architecture');
-const walkthroughUrl = Astro.resolve('/walkthrough/node-structure');
-const playgroundUrl = Astro.resolve('/playground');
+// Precomputed URLs using base path
+const homeUrl = BASE_URL;
+const architectureUrl = `${BASE_URL}architecture`;
+const walkthroughUrl = `${BASE_URL}walkthrough/node-structure`;
+const playgroundUrl = `${BASE_URL}playground`;
+
+// Build mobile nav HTML at build time
+const mobileNavHTML = `
+    <a href="${homeUrl}" class="mobile-link">Home</a>
+    <a href="${architectureUrl}" class="mobile-link">Architecture</a>
+    <a href="${walkthroughUrl}" class="mobile-link">Walkthrough</a>
+    <a href="${playgroundUrl}" class="mobile-link">Playground</a>
+  `;
 ---
 
 <nav class="split-nav">
@@ -51,17 +60,12 @@ const playgroundUrl = Astro.resolve('/playground');
   </div>
 </nav>
 
-<script>
+<script define:vars={{ mobileNavHTML }}>
   // Mobile Nav Logic
   const navToggle = document.querySelector('.nav-toggle');
   const navOverlay = document.createElement('div');
   navOverlay.className = 'nav-overlay';
-  navOverlay.innerHTML = `
-    <a href="/" class="mobile-link">Home</a>
-    <a href="/architecture" class="mobile-link">Architecture</a>
-    <a href="/walkthrough/node-structure" class="mobile-link">Walkthrough</a>
-    <a href="/playground" class="mobile-link">Playground</a>
-  `;
+  navOverlay.innerHTML = mobileNavHTML;
   document.body.appendChild(navOverlay);
 
   const mobileLinks = navOverlay.querySelectorAll('a');
