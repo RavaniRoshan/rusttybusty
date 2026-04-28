@@ -4,8 +4,8 @@ import react from '@astrojs/react';
 
 export default defineConfig({
   integrations: [mdx(), react()],
-  base: '/',
-  site: 'https://roshanravani.github.io',
+  base: '/rusttybusty/',
+  site: 'https://roshanravani.github.io/rusttybusty',
   build: {
     assets: '_assets'
   }

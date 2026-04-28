@@ -2,23 +2,29 @@
 import MascotNav from './MascotNav.jsx';
 
 const currentPath = Astro.url.pathname;
+
+// Precompute resolved URLs for comparison
+const homeUrl = Astro.resolve('/');
+const architectureUrl = Astro.resolve('/architecture');
+const walkthroughUrl = Astro.resolve('/walkthrough/node-structure');
+const playgroundUrl = Astro.resolve('/playground');
 ---
 
 <nav class="split-nav">
-  <div class="nav-island nav-island-left">
-    <a href="/" class="nav-logo">
-      <MascotNav />
-      <span>Immutable DOM</span>
-    </a>
-  </div>
+   <div class="nav-island nav-island-left">
+     <a href={homeUrl} class="nav-logo">
+       <MascotNav />
+       <span>Immutable DOM</span>
+     </a>
+   </div>
   
-  <div class="nav-island nav-island-right">
-    <ul class="nav-links">
-      <li><a href="/" class:list={currentPath === '/' ? ['active'] : []}>Home</a></li>
-      <li><a href="/architecture" class:list={currentPath === '/architecture' || currentPath.startsWith('/architecture') ? ['active'] : []}>Architecture</a></li>
-      <li><a href="/walkthrough/node-structure" class:list={currentPath.startsWith('/walkthrough') ? ['active'] : []}>Walkthrough</a></li>
-      <li><a href="/playground" class:list={currentPath === '/playground' ? ['active'] : []}>Playground</a></li>
-    </ul>
+   <div class="nav-island nav-island-right">
+     <ul class="nav-links">
+       <li><a href={homeUrl} class:list={currentPath === homeUrl ? ['active'] : []}>Home</a></li>
+       <li><a href={architectureUrl} class:list={currentPath === architectureUrl || currentPath.startsWith(architectureUrl) ? ['active'] : []}>Architecture</a></li>
+       <li><a href={walkthroughUrl} class:list={currentPath.startsWith(walkthroughUrl) ? ['active'] : []}>Walkthrough</a></li>
+       <li><a href={playgroundUrl} class:list={currentPath === playgroundUrl ? ['active'] : []}>Playground</a></li>
+     </ul>
     
     <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
       <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
