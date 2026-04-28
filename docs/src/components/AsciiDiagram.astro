@@ -1,5 +1,8 @@
 ---
-import AsciiDiagram from '../components/AsciiDiagram';
----
+interface Props {
+  className?: string;
+}
 
+const { className = '' } = Astro.props;
+---
 <span class={`ascii-art ${className}`}><slot /></span>

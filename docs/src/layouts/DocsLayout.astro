@@ -7,13 +7,7 @@ interface Props {
   description?: string;
 }
 
-const currentPath = Astro.url.pathname;
-const isHome = currentPath === '/';
-
-const { 
-  title, 
-  description = 'Immutable Shared-State DOM in Rust — A proof-of-concept lock-free browser DOM'
-} = Astro.props;
+const { title, description = 'Immutable Shared-State DOM in Rust — A proof-of-concept lock-free browser DOM' } = Astro.props;
 ---
 
 <!DOCTYPE html>
